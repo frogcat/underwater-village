@@ -1,0 +1,45 @@
+{
+  "version": 8,
+  "glyphs": "https://maps.gsi.go.jp/xyz/noto-jp/{fontstack}/{range}.pbf",
+  "sources": {
+    "now": {
+      "type": "raster",
+      "tiles": ["https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg"],
+      "minzoom": 8,
+      "maxzoom": 18,
+      "tileSize": 256,
+      "attribution": "<a href='http://maps.gsi.go.jp/development/ichiran.html'>地理院タイル</a>"
+    },
+    "old": {
+      "type": "raster",
+      "tiles": ["mask://cyberjapandata.gsi.go.jp/xyz/gazo1/{z}/{x}/{y}.jpg"],
+      "minzoom": 8,
+      "maxzoom": 15,
+      "tileSize": 256,
+      "attribution": "<a href='http://maps.gsi.go.jp/development/ichiran.html'>地理院タイル</a>"
+    }
+  },
+  "layers": [
+    {
+      "id": "now",
+      "type": "raster",
+      "source": "now",
+      "minzoom": 8,
+      "maxzoom": 20,
+      "paint": {
+        "raster-brightness-max": ["step", ["zoom"], 0.9, 12.5, 0.7],
+        "raster-saturation": -0.2
+      }
+    },
+    {
+      "id": "old",
+      "type": "raster",
+      "source": "old",
+      "minzoom": 8,
+      "maxzoom": 20,
+      "paint": {
+        "raster-saturation": -0.3
+      }
+    }
+  ]
+}

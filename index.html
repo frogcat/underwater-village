@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>underwater-village</title>
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0" />
+    <link href="https://unpkg.com/maplibre-gl@5.4.0/dist/maplibre-gl.css" rel="stylesheet" />
+    <script src="https://unpkg.com/maplibre-gl@5.4.0/dist/maplibre-gl.js"></script>
+    <script>
+      function createLoadFn() {
+        const load = (url) =>
+          new Promise((resolve) => {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = () => {
+              const canvas = document.createElement("canvas");
+              canvas.width = img.naturalWidth;
+              canvas.height = img.naturalHeight;
+              const context = canvas.getContext("2d");
+              context.drawImage(img, 0, 0);
+              const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+              resolve({ canvas, context, imageData });
+            };
+            img.src = url;
+          });
+        const toBlob = (canvas) =>
+          new Promise((resolve) => {
+            canvas.toBlob(resolve);
+          }).then((blob) => blob.arrayBuffer());
+
+        return async function (params) {
+          const [y, x, z] = params.url.split(/[\./]/).reverse().slice(1);
+          const url = [
+            params.url.replace("mask://", "https://"),
+            `https://cyberjapandata.gsi.go.jp/xyz/dem5a_png/${z}/${x}/${y}.png`,
+          ];
+          const [src, dem] = await Promise.all(url.map(load));
+          for (let i = 0; i < dem.imageData.data.length; i += 4) {
+            if (
+              dem.imageData.data[i + 0] !== 0x80 ||
+              dem.imageData.data[i + 1] !== 0x00 ||
+              dem.imageData.data[i + 2] !== 0x00
+            )
+              src.imageData.data.fill(0, i, i + 4);
+          }
+          src.context.putImageData(src.imageData, 0, 0);
+          return {
+            data: await toBlob(src.canvas),
+          };
+        };
+      }
+    </script>
+  </head>
+  <body>
+    <div id="map" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0"></div>
+    <script>
+      maplibregl.addProtocol("mask", createLoadFn());
+      new maplibregl.Map({
+        container: "map",
+        center: [136.485452, 35.69576],
+        zoom: 13,
+        hash: true,
+        style: "style.json",
+      });
+    </script>
+  </body>
+</html>
